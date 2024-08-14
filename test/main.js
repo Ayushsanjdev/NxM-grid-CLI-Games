@@ -14,6 +14,7 @@ Every player can move one square every 5 seconds diagonally, horizontally and ve
 Max player number < empty grid spots
 
 New player can be added after a game starts
+
 */
 
 import Game from "./game.js";
