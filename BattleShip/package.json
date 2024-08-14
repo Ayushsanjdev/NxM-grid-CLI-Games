@@ -1,0 +1,12 @@
+{
+  "name": "battleship",
+  "version": "1.0.0",
+  "description": "- **Description**: Simulate a simplified version of the Battleship game. Players take turns placing their ships on an `n x m` grid and then take turns trying to hit the opponent's ships by guessing grid coordinates. The game continues until all ships of one player are sunk.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
