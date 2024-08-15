@@ -23,10 +23,10 @@ import Player from "./player.js";
 const game1 = Game.create(3, 4);
 const game2 = Game.create(4, 4);
 
-const playerA = Player.create("A");
-const playerB = Player.create("B");
-const playerC = Player.create("C");
-const playerD = Player.create("D");
+const playerA = Player.create();
+const playerB = Player.create();
+const playerC = Player.create();
+const playerD = Player.create();
 
 game1.addPlayer(playerA);
 game1.addPlayer(playerB);

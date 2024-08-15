@@ -1,128 +1,105 @@
-class Game {
-	static gameCounter = 0;
-	constructor(n, m) {
-		this.n = n; // Number of rows
-		this.m = m; // Number of columns
+export default class Game {
+	static gameIdGenerator = 1;
+
+	constructor(rows, cols) {
+		this.gameId = Game.gameIdGenerator++;
+		this.rows = rows;
+		this.cols = cols;
+		this.grid = Array.from({ length: rows }, () => Array(cols).fill("_"));
 		this.players = [];
-		this.destination = this.generateDestination();
-		this.gameId = Game.gameCounter++;
+		this.step = 0;
+		this.destination = this.getRandomCoordinates();
+		this.grid[this.destination.x][this.destination.y] = "X";
 	}
 
-	static create(n, m) {
-		return new Game(n, m);
+	static create(rows, cols) {
+		return new Game(rows, cols);
 	}
 
-	generateDestination() {
-		return {
-			x: Math.floor(Math.random() * this.n),
-			y: Math.floor(Math.random() * this.m),
-		};
+	getRandomCoordinates() {
+		const x = Math.floor(Math.random() * this.rows);
+		const y = Math.floor(Math.random() * this.cols);
+		return { x, y };
 	}
 
 	addPlayer(player) {
-		if (this.players.length >= this.n * this.m - 1) {
-			console.log("Cannot add more players. Maximum limit reached.");
-			return;
-		}
-		player.setPosition(this.randomPosition());
+		player.placePlayer(this.rows, this.cols, this.grid);
 		this.players.push(player);
-		console.log(
-			`${player.name} joined the game at (${player.x}, ${player.y})`,
-		);
-	}
-
-	randomPosition() {
-		return {
-			x: Math.floor(Math.random() * this.n),
-			y: Math.floor(Math.random() * this.m),
-		};
+		this.grid[player.x][player.y] = player.id;
 	}
 
 	start() {
-		console.log(
-			`Game ${this.gameId} started with destination at (${this.destination.x}, ${this.destination.y})`,
-		);
-		console.log(`below starter grid board`);
+		console.log(`\nGame[${this.gameId}]:\n`);
 		this.displayGrid();
-		this.gameInterval = setInterval(() => {
-			for (let player of this.players) {
-				player.move(this.n, this.m);
-			}
-			this.checkForCollisions();
-			if (this.checkForWin() || this.checkForGameOver()) {
-				clearInterval(this.gameInterval);
-			}
-			this.displayGrid();
-		}, 5000); // Move every 5 seconds
+		this.playNextStep();
 	}
 
-	checkForWin() {
+	playNextStep() {
+		this.step++;
+		console.log(
+			`Game ${String(this.gameId).padStart(3, "0")} Turn ${String(this.step).padStart(3, "0")}:\n`,
+		);
+		this.players.forEach((player) =>
+			player.nextMove(this.grid, this.destination),
+		);
+
+		if (this.checkWin() || this.checkCollision()) {
+			console.log(`Game ${String(this.gameId).padStart(3, "0")} Over!\n`);
+			return;
+		}
+
+		this.displayGrid();
+		setTimeout(() => this.playNextStep(), 5000);
+	}
+
+	checkCollision() {
+		const positions = new Map();
+		let collisionDetected = false;
+
+		this.players.forEach((player) => {
+			if (player.isCollisionOccurred) return;
+
+			const position = `${player.x},${player.y}`;
+			if (!positions.has(position)) {
+				positions.set(position, []);
+			}
+			positions.get(position).push(player);
+		});
+
+		positions.forEach((playersAtPosition) => {
+			if (playersAtPosition.length > 1) {
+				if (!collisionDetected) {
+					console.log("Collision Detected!\n");
+					collisionDetected = true;
+				}
+
+				playersAtPosition.forEach((player) => {
+					player.isCollisionOccurred = true;
+				});
+			}
+		});
+
+		return collisionDetected;
+	}
+
+	displayGrid() {
+		this.grid.forEach((row) => console.log(row.join(" ")));
+		console.log("\n");
+	}
+
+	checkWin() {
 		for (let player of this.players) {
 			if (
-				player.alive &&
 				player.x === this.destination.x &&
 				player.y === this.destination.y
 			) {
+				this.displayGrid();
 				console.log(
-					`${player.name} reached the destination and won the game${this.gameId}! example below:`,
+					`Player ${player.id} wins the Game ${String(this.gameId).padStart(3, "0")} at position (${this.destination.x}, ${this.destination.y})\n`,
 				);
 				return true;
 			}
 		}
 		return false;
 	}
-
-	checkForCollisions() {
-		for (let i = 0; i < this.players.length; i++) {
-			for (let j = i + 1; j < this.players.length; j++) {
-				if (
-					this.players[i].alive &&
-					this.players[j].alive &&
-					this.players[i].x === this.players[j].x &&
-					this.players[i].y === this.players[j].y
-				) {
-					this.players[i].alive = false;
-					this.players[j].alive = false;
-					console.log(
-						`${this.players[i].name} and ${this.players[j].name} collided and were eliminated!`,
-					);
-				}
-			}
-		}
-	}
-
-	checkForGameOver() {
-		const alivePlayers = this.players.filter((player) => player.alive);
-		if (alivePlayers.length === 0) {
-			console.log(
-				`No players left, game${this.gameId} over! below grid example:`,
-			);
-			return true;
-		}
-		return false;
-	}
-
-	displayGrid() {
-		let grid = Array.from({ length: this.n }, () =>
-			Array(this.m).fill("_"),
-		);
-
-		// Place the destination on the grid
-		grid[this.destination.x][this.destination.y] = "X";
-
-		// Place players on the grid
-		for (let player of this.players) {
-			if (player.alive) {
-				grid[player.x][player.y] = player.name;
-			}
-		}
-
-		console.log(`\nGame ${this.gameId} Grid:`);
-		for (let row of grid) {
-			console.log(row.join(" "));
-		}
-		console.log(); // Add some spacing between rounds
-	}
 }
-
-export default Game;

@@ -1,67 +1,46 @@
-class Player {
-  constructor(name) {
-    this.name = name;
+export default class Player {
+  static playerIdGenerator = 0;
+
+  constructor() {
+    this.id = String.fromCharCode(65 + Player.playerIdGenerator++);
     this.x = 0;
     this.y = 0;
-    this.alive = true;
+    this.isCollisionOccurred = false;
   }
 
-  static create(name) {
-    return new Player(name);
+  static create() {
+    return new Player();
   }
 
-  setPosition(position) {
-    this.x = position.x;
-    this.y = position.y;
+  placePlayer(rows, cols, grid) {
+    do {
+      this.x = Math.floor(Math.random() * rows);
+      this.y = Math.floor(Math.random() * cols);
+    } while (grid[this.x][this.y] !== "_");
   }
 
-  move(n, m) {
-    if (!this.alive) return;
-
-    // Randomly choose a direction: up, down, left, right, or diagonal
-    const direction = Math.floor(Math.random() * 8);
-
-    switch (direction) {
-      case 0:
-        if (this.x > 0) this.x--;
-        break; // Move left
-      case 1:
-        if (this.x < n - 1) this.x++;
-        break; // Move right
-      case 2:
-        if (this.y > 0) this.y--;
-        break; // Move up
-      case 3:
-        if (this.y < m - 1) this.y++;
-        break; // Move down
-      case 4:
-        if (this.x > 0 && this.y > 0) {
-          this.x--;
-          this.y--;
-        }
-        break; // Move up-left
-      case 5:
-        if (this.x < n - 1 && this.y > 0) {
-          this.x++;
-          this.y--;
-        }
-        break; // Move up-right
-      case 6:
-        if (this.x > 0 && this.y < m - 1) {
-          this.x--;
-          this.y++;
-        }
-        break; // Move down-left
-      case 7:
-        if (this.x < n - 1 && this.y < m - 1) {
-          this.x++;
-          this.y++;
-        }
-        break; // Move down-right
+  nextMove(grid, destination) {
+    if (
+      this.isCollisionOccurred ||
+      (this.x === destination.x &&
+        this.y === destination.y)
+    ) {
+      return;
     }
 
-    console.log(`${this.name} moved to (${this.x}, ${this.y})`);
+    if (grid[this.x][this.y] === this.id) {
+      grid[this.x][this.y] = "_";
+    }
+
+    const dx = destination.x - this.x;
+    const dy = destination.y - this.y;
+
+    if (Math.abs(dx) > Math.abs(dy)) {
+      this.x += Math.sign(dx);
+    } else {
+      this.y += Math.sign(dy);
+    }
+
+    grid[this.x][this.y] = this.id;
   }
 }
-
-export default Player;
